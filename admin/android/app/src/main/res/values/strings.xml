@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Store Admin</string>
+    <string name="title_activity_main">Store Admin</string>
+    <string name="package_name">com.store.admin</string>
+    <string name="custom_url_scheme">com.store.admin</string>
+</resources>

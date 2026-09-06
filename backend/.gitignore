@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.env
+grocery.db
+.pytest_cache/

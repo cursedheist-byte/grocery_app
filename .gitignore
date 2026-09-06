@@ -1,0 +1,13 @@
+backend/.env
+backend/grocery.db
+backend/test_grocery.db
+backend/venv/
+**/__pycache__/
+**/*.pyc
+node_modules/
+dist/
+.env.local
+*.db-journal
+test_grocery.db
+.vscode/
+.env
