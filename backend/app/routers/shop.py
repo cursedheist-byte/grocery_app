@@ -1,6 +1,5 @@
 import os
 import secrets
-import imghdr
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -37,7 +36,17 @@ def upload_image(request: Request, file: UploadFile = File(...), _=Depends(admin
         raise HTTPException(400, "Empty file")
     if len(data) > 5 * 1024 * 1024:
         raise HTTPException(400, "Image must be under 5 MB")
-    kind = imghdr.what(None, data)
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        kind = "png"
+    elif data.startswith(b"\xff\xd8\xff"):
+        kind = "jpeg"
+    elif data[:6] in (b"GIF87a", b"GIF89a"):
+        kind = "gif"
+    elif data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        kind = "webp"
+    else:
+        kind = None
+
     if kind not in ("png", "jpeg", "gif", "webp"):
         raise HTTPException(400, "Only PNG, JPEG, GIF or WebP images are allowed")
     name = f"{secrets.token_hex(8)}.{kind}"
