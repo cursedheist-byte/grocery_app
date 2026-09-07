@@ -1,18 +1,42 @@
 import os
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from .database import Base, engine, migrate_legacy_schema
+
+from .database import Base, engine, migrate_legacy_schema, SessionLocal
 from .config import settings
 from .services.notifications import init_firebase
 from .routers import auth, customers, products, categories, shop, cart, orders, notifications, admin, support, lists, item_requests
+from .models.models import User
+from .auth.security import hash_password
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     migrate_legacy_schema()
     init_firebase()
+
+    db = SessionLocal()
+    try:
+        admin = db.query(User).filter(User.phone == settings.admin_phone).first()
+
+        if not admin:
+            admin = User(
+                phone=settings.admin_phone,
+                role="ADMIN",
+                password_hash=hash_password(settings.admin_password),
+            )
+            db.add(admin)
+            db.commit()
+        elif admin.role != "ADMIN" or not admin.password_hash:
+            admin.role = "ADMIN"
+            admin.password_hash = hash_password(settings.admin_password)
+            db.commit()
+    finally:
+        db.close()
+
     yield
 
 app=FastAPI(title="Local Grocery API",version="1.0.0",lifespan=lifespan)
